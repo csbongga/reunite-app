@@ -122,9 +122,9 @@ function ProfilePage() {
       </section>
 
       <section className="px-4 mt-5 space-y-2">
-        <Row label="ข้อมูลส่วนตัว" />
-        <Row label="ประวัติการเปลี่ยนสถานะ" />
-        <Row label="ความเป็นส่วนตัวและความปลอดภัย" />
+        <Row label="ข้อมูลส่วนตัว" href="/profile/edit" />
+        <Row label="ประวัติการเปลี่ยนสถานะ" href="#" />
+        <Row label="ความเป็นส่วนตัวและความปลอดภัย" href="#" />
       </section>
 
       <section className="px-4 mt-6">
@@ -173,12 +173,13 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function Row({ label }: { label: string }) {
+function Row({ label, href }: { label: string; href?: string }) {
+  const Comp = href ? Link : "button";
   return (
-    <button className="w-full flex items-center justify-between bg-surface border border-border rounded-xl px-4 py-3.5 text-[14px] font-medium">
+    <Comp href={href || ""} className="w-full flex items-center justify-between bg-surface border border-border rounded-xl px-4 py-3.5 text-[14px] font-medium">
       <span>{label}</span>
       <ChevronRight className="size-4 text-muted-foreground" />
-    </button>
+    </Comp>
   );
 }
 

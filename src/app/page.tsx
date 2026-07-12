@@ -7,6 +7,7 @@ import { PostCard } from "@/components/post-card";
 import {
   CATEGORY_EMOJI,
   CATEGORY_LABEL,
+  calculateDistance,
   type Category,
 } from "@/lib/mock-data";
 import { useEffect, useMemo, useState } from "react";
@@ -40,7 +41,20 @@ function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   
+  const [userLoc, setUserLoc] = useState<{lat: number; lng: number} | null>(null);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+  
   const supabase = createClient();
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      }, (err) => {
+        console.error("Geolocation error:", err);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,7 +62,14 @@ function FeedPage() {
       if (user) {
         const metaName = user.user_metadata?.full_name;
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-        setUser(profile || { display_name: metaName || "ผู้ใช้ใหม่" });
+        setUser(profile || { display_name: metaName || "ผู้ใช้ใหม่", id: user.id });
+        
+        // Fetch unread notifications
+        const { count } = await supabase.from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+        setUnreadNotifs(count || 0);
       }
     };
     fetchUser();
@@ -84,19 +105,22 @@ function FeedPage() {
           <div className="px-4 pt-4 pb-3 flex items-center justify-between">
             <div>
               <p className="text-[12px] text-muted-foreground flex items-center gap-1">
-                <MapPin className="size-3" /> กรุงเทพ · 5 กม.
+                <MapPin className="size-3" /> {userLoc ? "ตำแหน่งปัจจุบัน" : "กำลังหาตำแหน่ง..."}
               </p>
               <h1 className="text-[22px] font-bold leading-tight">
                 สวัสดี, {user?.display_name?.split(" ")[0] || "ผู้เยี่ยมชม"} 👋
               </h1>
             </div>
-            <button
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground relative"
+            <Link
+              href="/notifications"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground relative transition hover:scale-105"
               aria-label="การแจ้งเตือน"
             >
               <Bell className="size-5" />
-              <span className="absolute top-2 right-2 size-2 bg-destructive rounded-full" />
-            </button>
+              {unreadNotifs > 0 && (
+                <span className="absolute top-2 right-2 size-2.5 bg-destructive rounded-full border-2 border-surface" />
+              )}
+            </Link>
           </div>
 
           <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
@@ -184,7 +208,7 @@ function FeedPage() {
               location: p.location || "ไม่ระบุตำแหน่ง",
               postedAt: new Date(p.created_at),
               userId: p.user_id,
-              distanceKm: 1.2, // mock value for now
+              distanceKm: (userLoc && p.lat && p.lng) ? calculateDistance(userLoc.lat, userLoc.lng, p.lat, p.lng) : 0,
               image: CATEGORY_EMOJI[p.category as Category] || "📦",
               imageUrl: p.image_urls && p.image_urls.length > 0 ? p.image_urls[0] : p.image_url,
               imageUrls: p.image_urls || [],

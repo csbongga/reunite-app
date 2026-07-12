@@ -23,6 +23,9 @@ import {
   relativeTime,
 } from "@/lib/mock-data";
 import { createClient } from "@/lib/supabase/client";
+import dynamic from "next/dynamic";
+
+const MapPicker = dynamic(() => import("@/components/map-picker"), { ssr: false });
 
 export default function PostDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
@@ -94,6 +97,16 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
     } else if (insertedComment) {
       setComments([...comments, insertedComment]);
       setNewComment("");
+      
+      if (post.user_id !== currentUser.id) {
+        // Send notification
+        await supabase.from("notifications").insert({
+          user_id: post.user_id,
+          actor_id: currentUser.id,
+          post_id: post.id,
+          type: "comment"
+        });
+      }
     }
   };
 
@@ -223,6 +236,11 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
 
         <div className="rounded-2xl bg-surface border border-border p-4 space-y-3">
           <Row icon={<MapPin className="size-4" />} label="สถานที่" value={post.location || "ไม่ระบุ"} />
+          {post.lat && post.lng && (
+            <div className="pt-1 pb-1">
+              <MapPicker location={{ lat: post.lat, lng: post.lng }} readonly />
+            </div>
+          )}
           <Row
             icon={<Calendar className="size-4" />}
             label={post.type === "lost" ? "เวลาที่หาย" : "เวลาที่พบ"}
@@ -240,10 +258,18 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
         {/* Owner Management Panel */}
         {currentUser && currentUser.id === post.user_id && (
           <section className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-4">
-            <h2 className="font-semibold text-foreground flex items-center gap-2">
-              <ShieldCheck className="size-4 text-primary" />
-              จัดการประกาศของคุณ
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                <ShieldCheck className="size-4 text-primary" />
+                จัดการประกาศของคุณ
+              </h2>
+              <Link 
+                href={`/post/${post.id}/edit`}
+                className="text-[12.5px] font-medium text-primary px-3 py-1.5 bg-primary/10 rounded-lg hover:bg-primary/20 transition"
+              >
+                แก้ไขข้อความ
+              </Link>
+            </div>
             <div className="space-y-3">
               <p className="text-[13px] text-muted-foreground">เปลี่ยนสถานะของประกาศ:</p>
               <div className="flex gap-2">

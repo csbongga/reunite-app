@@ -4,6 +4,7 @@ import React, { use, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera, MapPin, Calendar, Image as ImageIcon, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import { AppShell } from "@/components/app-shell";
 import { CATEGORY_EMOJI, CATEGORY_LABEL, type Category, type PostType } from "@/lib/mock-data";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +14,8 @@ const CATEGORIES: Category[] = [
 ];
 
 export default function Page(props: any) { return <NewPostPage {...props} />; }
+
+const MapPicker = dynamic(() => import("@/components/map-picker"), { ssr: false });
 
 function NewPostPage() {
   const router = useRouter();
@@ -26,6 +29,7 @@ function NewPostPage() {
   const [desc, setDesc] = useState("");
   const [marks, setMarks] = useState("");
   const [location, setLocation] = useState("");
+  const [coords, setCoords] = useState<{lat: number; lng: number} | null>(null);
   const [date, setDate] = useState("");
   
   const [images, setImages] = useState<File[]>([]);
@@ -98,6 +102,8 @@ function NewPostPage() {
         description: desc,
         marks,
         location,
+        lat: coords?.lat || null,
+        lng: coords?.lng || null,
         date: new Date(date).toISOString(),
         image_url: firstImage,
         image_urls: uploadedUrls,
@@ -282,6 +288,10 @@ function NewPostPage() {
               onChange={(e) => setLocation(e.target.value)}
               required
             />
+          </div>
+          <div className="mt-3">
+            <MapPicker location={coords} onChange={setCoords} />
+            <p className="mt-1 text-[11px] text-muted-foreground text-center">แตะบนแผนที่เพื่อระบุพิกัดที่ชัดเจน (ใช้คำนวณระยะทาง)</p>
           </div>
         </section>
 
