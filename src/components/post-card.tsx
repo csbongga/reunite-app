@@ -38,7 +38,7 @@ export function PostCard({ post }: { post: any }) {
             {post.title}
           </h3>
           <p className="text-[13px] text-muted-foreground line-clamp-1 mt-0.5">
-            {CATEGORY_EMOJI[post.category]} {CATEGORY_LABEL[post.category]}
+            {CATEGORY_EMOJI[post.category as keyof typeof CATEGORY_EMOJI]} {CATEGORY_LABEL[post.category as keyof typeof CATEGORY_LABEL]}
           </p>
           <div className="mt-2 flex items-center gap-3 text-[11.5px] text-muted-foreground">
             <span className="flex items-center gap-1 min-w-0">
