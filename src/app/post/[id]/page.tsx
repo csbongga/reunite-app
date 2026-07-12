@@ -150,7 +150,7 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
 
         {images.length > 1 && (
           <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-20 pointer-events-none">
-            {images.map((_, i) => (
+            {images.map((_: any, i: number) => (
               <div 
                 key={i} 
                 className={`size-1.5 rounded-full shadow-sm transition-all duration-300 ${
@@ -369,7 +369,7 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
             {/* Fullscreen dots indicator */}
             {images.length > 1 && (
               <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 pointer-events-none">
-                {images.map((_, i) => (
+                {images.map((_: any, i: number) => (
                   <div 
                     key={i} 
                     className={`size-2 rounded-full transition-all duration-300 ${
