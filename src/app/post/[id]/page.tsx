@@ -195,7 +195,7 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
             {post.title}
           </h1>
           <p className="mt-1 text-[12.5px] text-muted-foreground">
-            โพสต์เมื่อ {relativeTime(new Date(post.created_at))}
+            โพสต์เมื่อ {relativeTime(post.created_at)}
           </p>
         </div>
 
@@ -285,7 +285,7 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
                           </span>
                         )}
                         <span className="text-[11px] text-muted-foreground">
-                          {relativeTime(new Date(comment.created_at))}
+                          {relativeTime(comment.created_at)}
                         </span>
                       </div>
                       <p className="text-[13.5px] text-foreground/90 mt-0.5 leading-relaxed">
