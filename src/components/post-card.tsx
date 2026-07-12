@@ -3,14 +3,13 @@ import { MapPin, Clock } from "lucide-react";
 import {
   CATEGORY_EMOJI,
   CATEGORY_LABEL,
-  getUser,
   relativeTime,
-  type Post,
 } from "@/lib/mock-data";
 import { StatusBadge, TypeBadge } from "./badges";
 
-export function PostCard({ post }: { post: Post }) {
-  const user = getUser(post.userId);
+export function PostCard({ post }: { post: any }) {
+  const authorName = post.author?.display_name || "ผู้ใช้งาน";
+  const authorInitials = authorName.charAt(0).toUpperCase();
   return (
     <Link
       href={"/post/" + post.id}
@@ -18,13 +17,17 @@ export function PostCard({ post }: { post: Post }) {
     >
       <div className="flex gap-3 p-3">
         <div
-          className="size-20 shrink-0 rounded-xl flex items-center justify-center text-4xl"
+          className="size-20 shrink-0 rounded-xl flex items-center justify-center text-4xl overflow-hidden bg-surface"
           style={{
-            background: `oklch(0.94 0.05 ${post.imageHue})`,
+            background: post.imageUrl ? 'none' : `oklch(0.94 0.05 ${post.imageHue})`,
           }}
           aria-hidden
         >
-          {post.image}
+          {post.imageUrl ? (
+            <img src={post.imageUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            post.image
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -52,9 +55,9 @@ export function PostCard({ post }: { post: Post }) {
       <div className="px-3 pb-3 flex items-center justify-between text-[11.5px] text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span className="size-5 rounded-full bg-primary-soft text-primary font-semibold text-[10px] flex items-center justify-center">
-            {user.initials}
+            {authorInitials}
           </span>
-          {user.name}
+          {authorName}
         </span>
         <span>{post.distanceKm.toFixed(1)} กม.</span>
       </div>

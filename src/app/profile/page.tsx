@@ -5,7 +5,7 @@ import { Settings, ShieldCheck, Star, LogOut, ChevronRight } from "lucide-react"
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { PostCard } from "@/components/post-card";
-import { POSTS } from "@/lib/mock-data";
+import { CATEGORY_EMOJI, type Category } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/badges";
 import { createClient } from "@/lib/supabase/client";
 
@@ -17,9 +17,9 @@ function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [myPosts, setMyPosts] = useState<any[]>([]);
 
   const [tab, setTab] = useState<"active" | "closed">("active");
-  const myPosts = POSTS.filter((p) => p.userId === "user-1");
   const active = myPosts.filter((p) => p.status !== "closed");
   const closed = myPosts.filter((p) => p.status === "closed");
   const list = tab === "active" ? active : closed;
@@ -33,8 +33,33 @@ function ProfilePage() {
       }
       setUser(user);
       
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      if (data) setProfile(data);
+      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (profileData) setProfile(profileData);
+      
+      const { data: postsData } = await supabase
+        .from("posts")
+        .select("*, author:profiles(display_name, avatar_url)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+        
+      if (postsData) {
+        setMyPosts(postsData.map(p => ({
+          id: p.id,
+          type: p.type,
+          title: p.title,
+          category: p.category,
+          status: p.status,
+          location: p.location || "ไม่ระบุตำแหน่ง",
+          postedAt: new Date(p.created_at),
+          userId: p.user_id,
+          distanceKm: 0,
+          image: CATEGORY_EMOJI[p.category as Category] || "📦",
+          imageUrl: p.image_urls && p.image_urls.length > 0 ? p.image_urls[0] : p.image_url,
+          imageUrls: p.image_urls || [],
+          imageHue: 200,
+          author: p.author
+        })));
+      }
       
       setLoading(false);
     }

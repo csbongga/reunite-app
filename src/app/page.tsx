@@ -180,13 +180,16 @@ function FeedPage() {
               type: p.type as "lost" | "found",
               title: p.title,
               category: p.category as Category,
-              status: p.status as "open" | "resolved" | "closed",
-              location: p.location_name || "ไม่ระบุตำแหน่ง",
+              status: p.status as "open" | "closed",
+              location: p.location || "ไม่ระบุตำแหน่ง",
               postedAt: new Date(p.created_at),
-              userId: p.author_id,
+              userId: p.user_id,
               distanceKm: 1.2, // mock value for now
               image: CATEGORY_EMOJI[p.category as Category] || "📦",
-              imageHue: 200 // fixed for now
+              imageUrl: p.image_urls && p.image_urls.length > 0 ? p.image_urls[0] : p.image_url,
+              imageUrls: p.image_urls || [],
+              imageHue: 200, // fixed for now
+              author: p.author
             };
             return <PostCard key={p.id} post={mappedPost} />;
           })
