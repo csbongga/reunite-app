@@ -99,7 +99,7 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
 
   const handleStatusChange = async (newStatus: string) => {
     if (!confirm(`ยืนยันการเปลี่ยนสถานะเป็น "${newStatus === "searching" ? "กำลังตามหา" : newStatus === "arranging" ? "นัดรับ" : "ปิดเคส"}" ?`)) return;
-    const { error } = await supabase.from("posts").update({ status: newStatus }).eq("id", post.id);
+    const { error } = await supabase.from("posts").update({ status: newStatus }).eq("id", post.id).select().single();
     if (!error) {
       setPost({ ...post, status: newStatus });
     } else {
@@ -109,7 +109,7 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
 
   const handleDeletePost = async () => {
     if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบประกาศนี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
-    const { error } = await supabase.from("posts").delete().eq("id", post.id);
+    const { error } = await supabase.from("posts").delete().eq("id", post.id).select().single();
     if (!error) {
       router.push("/");
     } else {
