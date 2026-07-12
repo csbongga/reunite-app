@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Home, Search, PlusCircle, User } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface AppShellProps {
   children: ReactNode;
@@ -14,6 +16,36 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, hideTabs, topBar }: AppShellProps) {
+  const router = useRouter();
+  const supabase = createClient();
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          router.push("/auth");
+          // Fallback if router fails
+          setTimeout(() => {
+            if (window.location.pathname !== "/auth") {
+              window.location.href = "/auth";
+            }
+          }, 500);
+        } else {
+          setIsAuthChecking(false);
+        }
+      } catch (err) {
+        window.location.href = "/auth";
+      }
+    }
+    checkAuth();
+  }, [router, supabase]);
+
+  if (isAuthChecking) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">กำลังโหลด...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="w-full min-h-screen bg-background flex flex-col relative">

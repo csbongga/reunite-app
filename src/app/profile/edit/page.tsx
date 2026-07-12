@@ -84,8 +84,7 @@ export default function EditProfilePage() {
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         display_name: displayName.trim(),
-        avatar_url: finalAvatarUrl,
-        updated_at: new Date().toISOString()
+        avatar_url: finalAvatarUrl
       });
       
       if (error) throw error;
