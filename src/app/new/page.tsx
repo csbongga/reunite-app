@@ -101,7 +101,7 @@ function NewPostPage() {
         date: new Date(date).toISOString(),
         image_url: firstImage,
         image_urls: uploadedUrls,
-        status: 'open'
+        status: 'searching'
       });
 
       if (insertError) throw insertError;
