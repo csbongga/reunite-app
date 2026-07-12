@@ -30,7 +30,11 @@ function NewPostPage() {
   const [marks, setMarks] = useState("");
   const [location, setLocation] = useState("");
   const [coords, setCoords] = useState<{lat: number; lng: number} | null>(null);
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  });
   
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
