@@ -12,6 +12,8 @@ import {
   Send,
   Lock,
   Flag,
+  User as UserIcon,
+  Trash2,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { StatusBadge, TypeBadge } from "@/components/badges";
@@ -95,6 +97,26 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
     }
   };
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (!confirm(`ยืนยันการเปลี่ยนสถานะเป็น "${newStatus === "searching" ? "กำลังตามหา" : newStatus === "arranging" ? "นัดรับ" : "ปิดเคส"}" ?`)) return;
+    const { error } = await supabase.from("posts").update({ status: newStatus }).eq("id", post.id);
+    if (!error) {
+      setPost({ ...post, status: newStatus });
+    } else {
+      alert("Error: " + error.message);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบประกาศนี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+    const { error } = await supabase.from("posts").delete().eq("id", post.id);
+    if (!error) {
+      router.push("/");
+    } else {
+      alert("Error: " + error.message);
+    }
+  };
+
   if (loading) {
     return <AppShell hideTabs><div className="p-10 text-center text-muted-foreground">กำลังโหลดข้อมูล...</div></AppShell>;
   }
@@ -112,7 +134,7 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
 
   const images = post.image_urls && post.image_urls.length > 0 ? post.image_urls : (post.image_url ? [post.image_url] : []);
   
-  const currentUserInitials = currentUser?.display_name ? currentUser.display_name.charAt(0).toUpperCase() : "ME";
+  const currentUserInitials = currentUser?.display_name ? currentUser.display_name.charAt(0).toUpperCase() : "";
 
   return (
     <AppShell hideTabs>
@@ -206,12 +228,51 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
             label={post.type === "lost" ? "เวลาที่หาย" : "เวลาที่พบ"}
             value={happened}
           />
-          <Row
-            icon={<ShieldCheck className="size-4" />}
-            label="ระยะห่าง"
-            value={`ห่างจากคุณ 1.2 กม.`}
-          />
+          {post.distanceKm > 0 && (
+            <Row
+              icon={<ShieldCheck className="size-4" />}
+              label="ระยะห่าง"
+              value={`ห่างจากคุณ ${post.distanceKm.toFixed(1)} กม.`}
+            />
+          )}
         </div>
+
+        {/* Owner Management Panel */}
+        {currentUser && currentUser.id === post.user_id && (
+          <section className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-4">
+            <h2 className="font-semibold text-foreground flex items-center gap-2">
+              <ShieldCheck className="size-4 text-primary" />
+              จัดการประกาศของคุณ
+            </h2>
+            <div className="space-y-3">
+              <p className="text-[13px] text-muted-foreground">เปลี่ยนสถานะของประกาศ:</p>
+              <div className="flex gap-2">
+                {(["searching", "arranging", "closed"] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => handleStatusChange(s)}
+                    className={`flex-1 py-2 rounded-xl text-[12.5px] font-medium transition active:scale-95 ${
+                      post.status === s 
+                        ? "bg-primary text-primary-foreground shadow-sm" 
+                        : "bg-surface border border-border text-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {s === "searching" ? "กำลังตามหา" : s === "arranging" ? "นัดรับ" : "ปิดเคส"}
+                  </button>
+                ))}
+              </div>
+              <div className="pt-2">
+                <button
+                  onClick={handleDeletePost}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition active:scale-95"
+                >
+                  <Trash2 className="size-4" />
+                  ลบประกาศนี้
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section>
           <h2 className="font-semibold mb-2 text-foreground">รายละเอียด</h2>
@@ -306,7 +367,7 @@ export default function PostDetailPage(props: { params: Promise<{ id: string }> 
           className="flex items-center gap-2"
         >
           <div className="size-8 shrink-0 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold flex items-center justify-center">
-            {currentUserInitials}
+            {currentUserInitials || <UserIcon className="size-4" />}
           </div>
           <input
             type="text"

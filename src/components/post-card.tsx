@@ -59,7 +59,7 @@ export function PostCard({ post }: { post: any }) {
           </span>
           {authorName}
         </span>
-        <span>{post.distanceKm.toFixed(1)} กม.</span>
+        {post.distanceKm > 0 && <span>{post.distanceKm.toFixed(1)} กม.</span>}
       </div>
     </Link>
   );
