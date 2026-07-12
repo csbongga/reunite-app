@@ -32,6 +32,16 @@ function LocationMarker({ location, onChange, readonly }: MapPickerProps) {
   return location ? <Marker position={location} icon={icon} /> : null;
 }
 
+function RecenterAutomatically({ location }: { location: { lat: number; lng: number } | null }) {
+  const map = useMapEvents({});
+  useEffect(() => {
+    if (location) {
+      map.setView([location.lat, location.lng], 16, { animate: true });
+    }
+  }, [location, map]);
+  return null;
+}
+
 export default function MapPicker({ location, onChange, readonly = false }: MapPickerProps) {
   const [isMounted, setIsMounted] = useState(false);
   const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
@@ -53,6 +63,7 @@ export default function MapPicker({ location, onChange, readonly = false }: MapP
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <RecenterAutomatically location={location} />
         <LocationMarker location={location} onChange={onChange} readonly={readonly} />
       </MapContainer>
     </div>
